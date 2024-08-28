@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinator_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/txt_student_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected Students: 0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.4"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:layout_marginTop="16dp"
+            android:id="@+id/btn_select_student"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/select_student"
+            app:layout_constraintEnd_toEndOf="@+id/txt_student_count"
+            app:layout_constraintStart_toStartOf="@+id/txt_student_count"
+            app:layout_constraintTop_toBottomOf="@+id/txt_student_count" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/backdrop_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:alpha="0" />
+
+    <!-- BottomSheet should be directly under CoordinatorLayout -->
+    <include
+        android:id="@+id/include_bottom_sheet"
+        layout="@layout/bottom_sheet_students" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
