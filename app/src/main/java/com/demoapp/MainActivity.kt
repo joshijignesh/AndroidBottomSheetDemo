@@ -5,6 +5,10 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.demoapp.adapter.StudentAdapter
 import com.demoapp.base.BaseActivity
 import com.demoapp.databinding.ActivityMainBinding
@@ -17,23 +21,40 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private lateinit var students: MutableList<Student>
     private val selectedStudentList = mutableListOf<Student>()
+    private val selectedStudentsForBottomSheet = mutableListOf<Student>()
 
     override fun getViewBinding() = ActivityMainBinding.inflate(layoutInflater)
 
     @SuppressLint("SetTextI18n")
     override fun setupViews() {
-        val bottomSheet = binding.includeBottomSheet.bottomSheet
+        val bottomSheet = binding.includeBottomSheet.llBottomSheet
         behavior = BottomSheetBehavior.from(bottomSheet)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (behavior?.state == BottomSheetBehavior.STATE_EXPANDED ||
+                    behavior?.state == BottomSheetBehavior.STATE_HALF_EXPANDED) {
+                    // Close the bottom sheet if it is open
+                    behavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+                } else {
+                    if (isEnabled) {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
 
         val searchBox = binding.includeBottomSheet.searchBox
         val clearIcon = binding.includeBottomSheet.clearIcon
         val doneButton = binding.includeBottomSheet.txtDone
+        val cancelButton = binding.includeBottomSheet.txtCancel
 
         behavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                     binding.backdropShadow.visibility = View.VISIBLE
-                    checkForSelectedValues()
+                    updateBottomSheetSelection()
                 }
             }
 
@@ -47,6 +68,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             if (behavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
                 behavior?.state = BottomSheetBehavior.STATE_COLLAPSED
             } else {
+                binding.includeBottomSheet.txtClassName.text = "Class IV A"
                 behavior?.state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
@@ -71,15 +93,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         clearIcon.setOnClickListener {
             searchBox.text.clear()
+            studentAdapter.filter.filter("")
         }
 
         doneButton.isEnabled = false
 
         doneButton.setOnClickListener {
-            selectedStudentList.clear()
-            selectedStudentList.addAll(students.filter { it.isChecked })
+            selectedStudentsForBottomSheet.clear()
+            selectedStudentsForBottomSheet.addAll(selectedStudentList)
 
             binding.txtStudentCount.text = "Selected Students: ${selectedStudentList.size}"
+            behavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        cancelButton.setOnClickListener {
             behavior?.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
@@ -140,26 +167,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             Student(50, "Aubrey Reed", "https://via.placeholder.com/150", false)
         ).toMutableList()
 
-        studentAdapter = StudentAdapter(students) {
+        studentAdapter = StudentAdapter(students) { student, isChecked ->
+            if (isChecked) selectedStudentList.add(student) else selectedStudentList.remove(student)
             updateCount()
             checkIfRecyclerViewIsEmpty()
         }
-        binding.includeBottomSheet.recyclerView.adapter = studentAdapter
+        binding.includeBottomSheet.recyclerView.apply {
+            adapter = studentAdapter
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun checkForSelectedValues() {
-        students.forEach { student ->
-            student.isChecked = selectedStudentList.any { it.id == student.id }
-        }
+    private fun updateBottomSheetSelection() {
+        selectedStudentList.clear()
+        selectedStudentList.addAll(selectedStudentsForBottomSheet)
+
         studentAdapter.notifyDataSetChanged()
-        checkIfRecyclerViewIsEmpty()
         updateCount()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateCount() {
-        val selectedCount = students.count { it.isChecked }
-        binding.includeBottomSheet.txtCount.text = selectedCount.toString()
+        val selectedCount = selectedStudentList.size
+        binding.includeBottomSheet.txtCount.text = "$selectedCount/${students.size} Selected"
 
         val isEnabled = selectedCount > 0
         binding.includeBottomSheet.txtDone.isEnabled = isEnabled
@@ -177,4 +207,3 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.includeBottomSheet.emptyView.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 }
-

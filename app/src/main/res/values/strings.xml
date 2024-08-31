@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">My Application</string>
-    <string name="select_student">select student</string>
     <string name="done">Done</string>
-    <string name="search_student">Search Student</string>
+    <string name="select_student">select student</string>
+    <string name="search_student">Search by name</string>
     <string name="no_students_found">No Students found</string>
+    <string name="className">className</string>
+    <string name="_0_36_selected">0/36 Selected</string>
 </resources>
